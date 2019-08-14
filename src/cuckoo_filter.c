@@ -64,7 +64,7 @@ add_fingerprint_to_bucket (
   fp &= filter->mask;
   for (size_t ii = 0; ii < filter->nests_per_bucket; ++ii) {
     cuckoo_nest_t *nest =
-      &filter->bucket[((h - 1) * filter->nests_per_bucket) + ii];
+      &filter->bucket[(h * filter->nests_per_bucket) + ii];
     if (0 == nest->fingerprint) {
       nest->fingerprint = fp;
       return CUCKOO_FILTER_OK;
@@ -86,7 +86,7 @@ remove_fingerprint_from_bucket (
   fp &= filter->mask;
   for (size_t ii = 0; ii < filter->nests_per_bucket; ++ii) {
     cuckoo_nest_t *nest =
-      &filter->bucket[((h - 1) * filter->nests_per_bucket) + ii];
+      &filter->bucket[(h * filter->nests_per_bucket) + ii];
     if (fp == nest->fingerprint) {
       nest->fingerprint = 0;
       return CUCKOO_FILTER_OK;
@@ -123,14 +123,14 @@ printf("depth = %u\n", depth);
   if (filter->max_kick_attempts == depth) {
     return CUCKOO_FILTER_FULL;
   }
-  
+
   size_t row = (0 == (rand() % 2) ? h1 : h2);
   size_t col = (rand() % filter->nests_per_bucket);
   size_t elem =
-    filter->bucket[((row - 1) * filter->nests_per_bucket) + col].fingerprint;
-  filter->bucket[((row - 1) * filter->nests_per_bucket) + col].fingerprint =
+    filter->bucket[(row  * filter->nests_per_bucket) + col].fingerprint;
+  filter->bucket[(row  * filter->nests_per_bucket) + col].fingerprint =
     fingerprint;
-  
+
   return cuckoo_filter_move(filter, elem, row, (depth + 1));
 
 } /* cuckoo_filter_move() */
@@ -213,8 +213,7 @@ cuckoo_filter_lookup (
   fingerprint &= filter->mask;
   for (size_t ii = 0; ii < filter->nests_per_bucket; ++ii) {
     cuckoo_nest_t *n1 =
-      &filter->bucket[(h1 * filter->nests_per_bucket) + ii];
-      //&filter->bucket[((h1 - 1) * filter->nests_per_bucket) + ii];
+      &filter->bucket[(h1  * filter->nests_per_bucket) + ii];
     if (fingerprint == n1->fingerprint) {
       result->was_found = true;
       break;
